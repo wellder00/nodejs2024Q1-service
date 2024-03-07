@@ -1,26 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDbDto } from './dto/create-db.dto';
-import { UpdateDbDto } from './dto/update-db.dto';
+import { Album } from 'src/album/entities/album.entity';
+import { Artist } from 'src/artist/entities/artist.entity';
+import { Favorites } from 'src/favorite/interface/favorites.interface';
+import { Track } from 'src/track/entities/track.entity';
+import { UserEntity } from 'src/user/entities/user.entity';
+import { DbEntities } from './types/db.interface';
 
 @Injectable()
 export class DbService {
-  create(createDbDto: CreateDbDto) {
-    return 'This action adds a new db';
-  }
+  users: UserEntity[] = [];
+  albums: Album[] = [];
+  artists: Artist[] = [];
+  tracks: Track[] = [];
 
-  findAll() {
-    return `This action returns all db`;
-  }
+  favorites: Favorites = {
+    artists: [],
+    albums: [],
+    tracks: [],
+  };
 
-  findOne(id: number) {
-    return `This action returns a #${id} db`;
-  }
-
-  update(id: number, updateDbDto: UpdateDbDto) {
-    return `This action updates a #${id} db`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} db`;
+  verifyEntityPresence(entityId: string, entityType: DbEntities): boolean {
+    const entities = this[entityType];
+    const matchingEntity = entities.find((entity) => entity.id === entityId);
+    return matchingEntity ? true : false;
   }
 }
