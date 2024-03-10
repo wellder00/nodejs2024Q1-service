@@ -31,9 +31,7 @@ export class UserController {
   }
 
   @Get(':id')
-  findOneUser(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-  ) {
+  findOneUser(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.userService.findOneUser(id);
   }
 
@@ -47,7 +45,7 @@ export class UserController {
 
   @Delete(':id')
   @HttpCode(204)
-  removeUser(@Param('id') id: string) {
+  removeUser(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.userService.removeUser(id);
   }
 }

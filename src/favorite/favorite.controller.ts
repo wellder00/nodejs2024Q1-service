@@ -2,44 +2,36 @@ import {
   Controller,
   Get,
   Post,
-  Body,
-  Patch,
   Param,
   Delete,
+  ParseUUIDPipe,
+  HttpCode,
 } from '@nestjs/common';
 import { FavoriteService } from './favorite.service';
-import { CreateFavoriteDto } from './dto/create-favorite.dto';
-import { UpdateFavoriteDto } from './dto/update-favorite.dto';
 
-@Controller('favorite')
+@Controller('favs')
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
 
-  @Post()
-  create(@Body() createFavoriteDto: CreateFavoriteDto) {
-    return this.favoriteService.create(createFavoriteDto);
+  @Post(':type/:id')
+  createFavorite(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('type') type: string,
+  ) {
+    return this.favoriteService.createFavorite(id, type);
   }
 
   @Get()
-  findAll() {
-    return this.favoriteService.findAll();
+  findAllFavorites() {
+    return this.favoriteService.findAllFavorites();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.favoriteService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateFavoriteDto: UpdateFavoriteDto,
+  @Delete(':type/:id')
+  @HttpCode(204)
+  remove(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('type') type: string,
   ) {
-    return this.favoriteService.update(+id, updateFavoriteDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.favoriteService.remove(+id);
+    return this.favoriteService.removeType(id, type);
   }
 }

@@ -1,6 +1,6 @@
 import {
   HttpException,
-  Inject,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -14,6 +14,17 @@ export class UserService {
   constructor(private db: DbService) {}
   async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
     const newUser = new UserEntity(createUserDto);
+    const existingUser = this.db.users.find(
+      (user) => user.login === newUser.login,
+    );
+
+    if (existingUser) {
+      throw new HttpException(
+        'User with the same name already exists',
+        HttpStatus.CONFLICT,
+      );
+    }
+
     // TODO: add "await" when implemented in DB
     this.db.users.push(newUser);
     return newUser;
