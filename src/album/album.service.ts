@@ -4,11 +4,21 @@ import { DbService } from 'src/db/db.service';
 import { AlbumEntity } from './entities/album.entity';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { Track } from 'src/track/interface/track.interface';
+import { DbEntities } from 'src/db/types/db.interface';
 
 @Injectable()
 export class AlbumService {
   constructor(private db: DbService) {}
   async createAlbum(createAlbumDto: CreateAlbumDto) {
+    const conditionArtist = this.db.verifyEntityPresence(
+      createAlbumDto.artistId,
+      DbEntities.ARTISTS,
+    );
+    if (conditionArtist && createAlbumDto.artistId) {
+      throw new NotFoundException(
+        `Artist with ID ${createAlbumDto.artistId} not found`,
+      );
+    }
     const newAlbum = new AlbumEntity(createAlbumDto);
     this.db.albums.push(newAlbum);
     return newAlbum;
@@ -28,9 +38,18 @@ export class AlbumService {
 
   async updateAlbum(id: string, updateAlbumDto: UpdateAlbumDto) {
     const currentAlbum = await this.findOneAlbum(id);
-    currentAlbum.artistId = updateAlbumDto.artistId || currentAlbum.artistId;
-    currentAlbum.name = updateAlbumDto.name || currentAlbum.name;
-    currentAlbum.year = updateAlbumDto.year || currentAlbum.year;
+    const conditionArtist = this.db.verifyEntityPresence(
+      updateAlbumDto.artistId,
+      DbEntities.ARTISTS,
+    );
+    if (conditionArtist && updateAlbumDto.artistId) {
+      throw new NotFoundException(
+        `Artist with ID ${updateAlbumDto.artistId} not found`,
+      );
+    }
+    currentAlbum.artistId = updateAlbumDto.artistId;
+    currentAlbum.name = updateAlbumDto.name;
+    currentAlbum.year = updateAlbumDto.year;
     return currentAlbum;
   }
 
