@@ -22,6 +22,6 @@ export class DbService {
   verifyEntityPresence(entityId: string, entityType: DbEntities): boolean {
     const entities: Entities = this[entityType];
     const matchingEntity = entities.find((entity) => entity.id === entityId);
-    return matchingEntity ? true : false;
+    return matchingEntity ? false : true;
   }
 }

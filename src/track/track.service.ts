@@ -9,13 +9,23 @@ import { TrackEntity } from './entities/track.entity';
 export class TrackService {
   constructor(private db: DbService) {}
   createTrack(createTrackDto: CreateTrackDto) {
-    const conditionAlbum = this.db.verifyEntityPresence(
+    const conditionArtist = this.db.verifyEntityPresence(
       createTrackDto.artistId,
+      DbEntities.ARTISTS,
+    );
+    const conditionAlbum = this.db.verifyEntityPresence(
+      createTrackDto.albumId,
       DbEntities.ALBUMS,
     );
-    if (conditionAlbum) {
+    if (conditionArtist && createTrackDto.artistId) {
       throw new NotFoundException(
-        `Album with ID ${createTrackDto.artistId} not found`,
+        `Artist with ID ${createTrackDto.artistId} not found`,
+      );
+    }
+
+    if (conditionAlbum && createTrackDto.albumId) {
+      throw new NotFoundException(
+        `Album with ID ${createTrackDto.albumId} not found`,
       );
     }
 
@@ -44,24 +54,24 @@ export class TrackService {
       DbEntities.ARTISTS,
     );
     const conditionAlbum = this.db.verifyEntityPresence(
-      updateTrackDto.artistId,
+      updateTrackDto.albumId,
       DbEntities.ALBUMS,
     );
-    if (conditionArtist) {
+    if (conditionArtist && updateTrackDto.artistId) {
       throw new NotFoundException(
         `Artist with ID ${updateTrackDto.artistId} not found`,
       );
     }
-    if (conditionAlbum) {
+    if (conditionAlbum && updateTrackDto.albumId) {
       throw new NotFoundException(
-        `Album with ID ${updateTrackDto.artistId} not found`,
+        `Album with ID ${updateTrackDto.albumId} not found`,
       );
     }
 
-    currentTrack.albumId = updateTrackDto.albumId || currentTrack.albumId;
-    currentTrack.artistId = updateTrackDto.artistId || currentTrack.artistId;
-    currentTrack.duration = updateTrackDto.duration || currentTrack.duration;
-    currentTrack.name = updateTrackDto.name || currentTrack.name;
+    currentTrack.albumId = updateTrackDto.albumId;
+    currentTrack.artistId = updateTrackDto.artistId;
+    currentTrack.duration = updateTrackDto.duration;
+    currentTrack.name = updateTrackDto.name;
 
     return currentTrack;
   }
