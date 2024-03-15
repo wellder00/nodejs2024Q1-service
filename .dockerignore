@@ -1,0 +1,9 @@
+/db-data
+/node_modules
+/doc
+README.md
+/.git
+.gitignore
+/dist
+.env
+.env.example

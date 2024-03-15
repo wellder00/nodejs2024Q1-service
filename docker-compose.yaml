@@ -1,0 +1,45 @@
+services:
+  data-base:
+    build: ./db/
+    container_name: 'data-base-PG'
+    restart: always
+    volumes:
+      - db_storage_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    env_file:
+      - .env
+    command:
+      [
+        'postgres',
+        '-c',
+        'port=$DATA_BASE_PORT',
+        '-c',
+        'logging_collector=on',
+        '-c',
+        'log_statement=all',
+      ]
+
+  app:
+    build: .
+    container_name: "app"
+    ports:
+      - '$PORT:$PORT'
+    tty: true
+    stdin_open: true
+    depends_on:
+      - data-base
+    restart: on-failure
+    networks:
+      - internal
+    env_file:
+      - .env
+
+volumes:
+  db_storage_data:
+    driver: local
+
+networks:
+  internal:
+    driver: bridge
+    name: 'internal'
