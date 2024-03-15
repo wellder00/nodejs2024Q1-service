@@ -1,6 +1,5 @@
-/db-data
+/db
 /node_modules
-/doc
 README.md
 /.git
 .gitignore

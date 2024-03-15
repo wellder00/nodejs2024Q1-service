@@ -6,12 +6,12 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { DbService } from 'src/db/db.service';
 import { UserEntity } from './entities/user.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(private db: DbService) {}
+  constructor(private db: PrismaService) {}
   async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
     const newUser = new UserEntity(createUserDto);
     const existingUser = this.db.users.find(

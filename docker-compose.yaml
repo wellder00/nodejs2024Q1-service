@@ -22,9 +22,10 @@ services:
 
   app:
     build: .
-    container_name: "app"
+    container_name: 'app'
     ports:
       - '$PORT:$PORT'
+      - '$STUDIO_PRISMA_PORT:STUDIO_PRISMA_PORT'
     tty: true
     stdin_open: true
     depends_on:
@@ -34,6 +35,8 @@ services:
       - internal
     env_file:
       - .env
+    volumes:
+      - ./src:/user/app/src
 
 volumes:
   db_storage_data:
