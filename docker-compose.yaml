@@ -1,6 +1,8 @@
 services:
-  data-base:
+  db:
     build: ./db/
+    ports:
+      - '$DATA_BASE_PORT:$DATA_BASE_PORT'
     container_name: 'data-base-PG'
     restart: always
     volumes:
@@ -25,11 +27,11 @@ services:
     container_name: 'app'
     ports:
       - '$PORT:$PORT'
-      - '$STUDIO_PRISMA_PORT:STUDIO_PRISMA_PORT'
+      - '$STUDIO_PRISMA_PORT:$STUDIO_PRISMA_PORT'
     tty: true
     stdin_open: true
     depends_on:
-      - data-base
+      - db
     restart: on-failure
     networks:
       - internal

@@ -1,66 +1,72 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
-  constructor(private db: PrismaService) {}
-  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
-    const newUser = new UserEntity(createUserDto);
-    const existingUser = this.db.users.find(
-      (user) => user.login === newUser.login,
-    );
-
-    if (existingUser) {
-      throw new HttpException(
-        'User with the same name already exists',
-        HttpStatus.CONFLICT,
-      );
-    }
-
-    // TODO: add "await" when implemented in DB
-    this.db.users.push(newUser);
-    return newUser;
+  constructor(private prisma: PrismaService) {}
+  async createUser(createUserDto: CreateUserDto) {
+    const user = await this.prisma.user.create({ data: createUserDto });
+    return new UserEntity(user);
   }
 
   async findAllUsers() {
-    return this.db.users;
+    const allPrismaUsers = await this.prisma.user.findMany();
+    const allUsers = allPrismaUsers.map((user) => new UserEntity(user));
+    return allUsers;
   }
 
   async findOneUser(id: string) {
-    const currentUser = this.db.users.find((user) => user.id === id);
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id },
+    });
     if (!currentUser) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
-    return currentUser;
+    return new UserEntity(currentUser);
   }
 
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
-    const currentUser = await this.findOneUser(id);
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
 
     if (currentUser.password !== updateUserDto.oldPassword) {
       throw new HttpException('Old password does not match', 403);
     }
 
-    currentUser.password = updateUserDto.newPassword;
-    currentUser.version = currentUser.version + 1;
-    currentUser.updatedAt = Date.now();
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        password: updateUserDto.newPassword,
+        version: { increment: 1 },
+      },
+    });
 
-    return currentUser;
+    return new UserEntity(updatedUser);
   }
 
   async removeUser(id: string) {
-    const currentUser = await this.findOneUser(id);
-    const index = this.db.users.findIndex((u) => u.id === currentUser.id);
-    if (index !== -1) {
-      this.db.users.splice(index, 1);
+    try {
+      const deleteUser = await this.prisma.user.delete({
+        where: { id },
+      });
+      return deleteUser;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`User with id ${id} not found`);
+      }
+      throw error;
     }
   }
 }

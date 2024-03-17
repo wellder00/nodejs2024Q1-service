@@ -4,94 +4,167 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DbService } from 'src/db/db.service';
 
-import { Entity } from './interface/entity';
-
-enum FavoriteType {
-  Artists = 'artists',
-  Albums = 'albums',
-  Tracks = 'tracks',
-}
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FavoriteService {
-  constructor(private db: DbService) {}
-  async createFavorite(id: string, type: string) {
-    let entity: Entity = null;
-
-    switch (type) {
-      case 'artist':
-      case 'album':
-      case 'track':
-        entity = this.db[type + 's'].find((item: Entity) => item.id === id);
-
-        if (!entity) {
-          throw new HttpException(
-            `${type} with ID ${id} not found`,
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
-        }
-
-        const alreadyInFavorites = this.db.favorites[type + 's'].some(
-          (favoriteItem: Entity) => favoriteItem.id === id,
-        );
-        if (alreadyInFavorites) {
-          throw new Error(`${type} with ID ${id} is already in favorites`);
-        }
-
-        this.db.favorites[type + 's'].push(id);
-        break;
-
-      default:
-        throw new HttpException(`${type} type does not exist`, 404);
-    }
-
-    return entity;
-  }
-
-  findAllFavorites() {
-    const filterExistingEntities = (entities, favorites) =>
-      favorites.map((id) => entities.find((e) => e.id === id)).filter((e) => e);
-
-    return {
-      artists: filterExistingEntities(
-        this.db.artists,
-        this.db.favorites.artists,
-      ),
-      albums: filterExistingEntities(this.db.albums, this.db.favorites.albums),
-      tracks: filterExistingEntities(this.db.tracks, this.db.favorites.tracks),
-    };
-  }
-
-  removeType(id: string, type: string) {
-    const favoriteType = this.getFavoriteType(type);
-    if (!favoriteType) {
-      throw new NotFoundException(`Type ${type} is not valid`);
-    }
-
-    const index = this.db.favorites[favoriteType].indexOf(id);
-    if (index === -1) {
-      throw new NotFoundException(
-        `${
-          type.charAt(0).toUpperCase() + type.slice(1)
-        } with ID ${id} not found in favorites`,
+  constructor(private prisma: PrismaService) {}
+  async createFavorite(id: string, type: 'artist' | 'album' | 'track') {
+    const entityExists = await this.checkEntityExists(id, type);
+    if (!entityExists) {
+      throw new HttpException(
+        `${type} with ID ${id} not found`,
+        HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
 
-    this.db.favorites[favoriteType].splice(index, 1);
+    let favorite = await this.prisma.favorite.findFirst();
+    if (favorite) {
+      favorite = await this.prisma.favorite.update({
+        where: { favoriteId: favorite.favoriteId },
+        data: this.getUpdateData(type, id, favorite),
+      });
+    } else {
+      favorite = await this.prisma.favorite.create({
+        data: this.getCreateData(type, id),
+      });
+    }
+
+    return favorite;
   }
 
-  private getFavoriteType(type: string): FavoriteType | undefined {
+  private async checkEntityExists(
+    id: string,
+    type: 'artist' | 'album' | 'track',
+  ): Promise<boolean> {
     switch (type) {
       case 'artist':
-        return FavoriteType.Artists;
+        return !!(await this.prisma.artist.findUnique({ where: { id } }));
+
       case 'album':
-        return FavoriteType.Albums;
+        return !!(await this.prisma.album.findUnique({ where: { id } }));
+
       case 'track':
-        return FavoriteType.Tracks;
+        return !!(await this.prisma.track.findUnique({ where: { id } }));
+
       default:
-        return undefined;
+        return false;
+    }
+  }
+
+  private getUpdateData(type: string, id: string, favorite: any) {
+    const updateData = {};
+    switch (type) {
+      case 'artist':
+        updateData['artists'] = { set: [...favorite.artists, id] };
+        break;
+
+      case 'album':
+        updateData['albums'] = { set: [...favorite.albums, id] };
+        break;
+
+      case 'track':
+        updateData['tracks'] = { set: [...favorite.tracks, id] };
+        break;
+    }
+    return updateData;
+  }
+
+  private getCreateData(type: string, id: string) {
+    const createData = { artists: [], albums: [], tracks: [] };
+    switch (type) {
+      case 'artist':
+        createData.artists.push(id);
+        break;
+
+      case 'album':
+        createData.albums.push(id);
+        break;
+
+      case 'track':
+        createData.tracks.push(id);
+        break;
+    }
+    return createData;
+  }
+
+  async findAllFavorites() {
+    const favorite = await this.prisma.favorite.findFirst();
+    if (!favorite) {
+      throw new HttpException('Favorites not found', HttpStatus.NOT_FOUND);
+    }
+
+    const artists = await this.prisma.artist.findMany({
+      where: { id: { in: favorite.artists } },
+    });
+    const albums = await this.prisma.album.findMany({
+      where: { id: { in: favorite.albums } },
+    });
+    const tracks = await this.prisma.track.findMany({
+      where: { id: { in: favorite.tracks } },
+    });
+
+    return { artists, albums, tracks };
+  }
+
+  async removeType(id: string, type: 'artist' | 'album' | 'track') {
+    const favorite = await this.prisma.favorite.findFirst();
+
+    if (!favorite) {
+      throw new NotFoundException('Favorites not found');
+    }
+
+    switch (type) {
+      case 'artist':
+        if (!favorite.artists.includes(id)) {
+          throw new NotFoundException(
+            `Artist with ID ${id} not found in favorites`,
+          );
+        }
+        await this.prisma.favorite.update({
+          where: { favoriteId: favorite.favoriteId },
+          data: {
+            artists: {
+              set: favorite.artists.filter((artistId) => artistId !== id),
+            },
+          },
+        });
+        break;
+
+      case 'album':
+        if (!favorite.albums.includes(id)) {
+          throw new NotFoundException(
+            `Album with ID ${id} not found in favorites`,
+          );
+        }
+        await this.prisma.favorite.update({
+          where: { favoriteId: favorite.favoriteId },
+          data: {
+            albums: {
+              set: favorite.albums.filter((albumId) => albumId !== id),
+            },
+          },
+        });
+        break;
+
+      case 'track':
+        if (!favorite.tracks.includes(id)) {
+          throw new NotFoundException(
+            `Track with ID ${id} not found in favorites`,
+          );
+        }
+        await this.prisma.favorite.update({
+          where: { favoriteId: favorite.favoriteId },
+          data: {
+            tracks: {
+              set: favorite.tracks.filter((trackId) => trackId !== id),
+            },
+          },
+        });
+        break;
+      default:
+        throw new NotFoundException(`Type ${type} is not valid`);
     }
   }
 }

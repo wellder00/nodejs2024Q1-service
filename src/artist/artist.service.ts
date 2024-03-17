@@ -1,25 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { DbService } from 'src/db/db.service';
-import { ArtistEntity } from './entities/artist.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ArtistService {
-  constructor(private db: DbService) {}
+  constructor(private prisma: PrismaService) {}
 
-  async createArtist(createArtistDto: CreateArtistDto): Promise<ArtistEntity> {
-    const newArtist = new ArtistEntity(createArtistDto);
-    // TODO: add "await" when implemented in DB
-    this.db.artists.push(newArtist);
-    return newArtist;
+  async createArtist(createArtistDto: CreateArtistDto) {
+    return await this.prisma.artist.create({ data: createArtistDto });
   }
   async findAllArtists() {
-    return this.db.artists;
+    return await this.prisma.artist.findMany();
   }
 
   async findOneArtist(id: string) {
-    const currentArtist = this.db.artists.find((artist) => artist.id === id);
+    const currentArtist = await this.prisma.artist.findUnique({
+      where: { id },
+    });
     if (!currentArtist) {
       throw new NotFoundException(`Artist with id ${id} not found`);
     }
@@ -27,36 +26,33 @@ export class ArtistService {
   }
 
   async updateArtist(id: string, updateArtistDto: UpdateArtistDto) {
-    const currentArtist = await this.findOneArtist(id);
-
-    currentArtist.name = updateArtistDto.name;
-    currentArtist.grammy = updateArtistDto.grammy;
-
-    return currentArtist;
+    try {
+      return await this.prisma.artist.update({
+        where: { id },
+        data: updateArtistDto,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Artist with id ${id} not found`);
+      }
+      throw error;
+    }
   }
 
   async removeArtist(id: string) {
-    const artistExists = this.db.artists.some((artist) => artist.id === id);
-    if (!artistExists) {
-      throw new NotFoundException(`Artist with ID ${id} not found`);
+    try {
+      return await this.prisma.artist.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Artist with id ${id} not found`);
+      }
+      throw error;
     }
-
-    this.db.tracks.forEach((track) => {
-      if (track.artistId === id) {
-        track.artistId = null;
-      }
-    });
-
-    this.db.albums.forEach((album) => {
-      if (album.artistId === id) {
-        album.artistId = null;
-      }
-    });
-
-    this.db.favorites.artists = this.db.favorites.artists.filter(
-      (storedId) => storedId !== id,
-    );
-
-    this.db.artists = this.db.artists.filter((artist) => artist.id !== id);
   }
 }
