@@ -40,9 +40,17 @@ npm docker:up
 After create and starting the app on port (**4000** as default) you can open
 in your browser OpenAPI documentation by typing
 
-> **http://localhost:4000/doc/**.
+> *http://localhost:4000/doc/*
 
 Also we can work with **postgresql** in manual mode through Prisma studio
+
+```bash
+npm docker:studio
+```
+
+And open a graphical user interface (GUI) in your browser to work with databases easily
+
+> *http://localhost:5555*
 
 ## :test_tube: Testing
 
@@ -64,4 +72,12 @@ npm run lint
 npm run format
 ```
 
-**[Link to this task here](https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/rest-service/assignment.md).**
+### :mag_right: Scan Docker containers
+
+You can also run a report on scanning Docker images for vulnerabilities using the docker scout tool. The report is an analysis of two Docker images: nodejs2023q2-service-app and nodejs2023q2-service-db:
+
+```bash
+npm docker:scan
+```
+
+**Link to this task [Containerization](https://github.com/AlreadyBored/nodejs-assignments/tree/main/assignments/containerization), [Database-orm ](https://github.com/AlreadyBored/nodejs-assignments/tree/main/assignments/database-orm).**
