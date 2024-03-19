@@ -92,7 +92,7 @@ export class FavoriteService {
   async findAllFavorites() {
     const favorite = await this.prisma.favorite.findFirst();
     if (!favorite) {
-      throw new HttpException('Favorites not found', HttpStatus.NOT_FOUND);
+      return { artists: [], albums: [], tracks: [] };
     }
 
     const artists = await this.prisma.artist.findMany({
