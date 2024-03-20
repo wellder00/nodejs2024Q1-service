@@ -5,6 +5,8 @@
 ![Node.js](https://img.shields.io/badge/-Node.js-43853D?style=flat-square&logo=Node.js&logoColor=white) ![NestJS](https://img.shields.io/badge/-NestJS-E0234E?style=flat-square&logo=NestJS&logoColor=white) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?style=flat-square&logo=TypeScript&logoColor=white) ![Git](https://img.shields.io/badge/-Git-F05032?style=flat&logo=Git&logoColor=white) ![Swagger](https://img.shields.io/badge/-Swagger-85EA2D?style=flat&logo=Swagger&logoColor=black)
 ![Postman](https://img.shields.io/badge/-Postman-FF6C37?style=flat&logo=Postman&logoColor=white)
 
+You can also see docker images here: **[Application](https://hub.docker.com/repository/docker/wellder00/nodejs2023q2-service-app/general)**, **[PostgresQl](https://hub.docker.com/repository/docker/wellder00/nodejs2023q2-service-db/general)**
+
 ## :clipboard: Prerequisites
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
@@ -40,7 +42,7 @@ npm docker:up
 After create and starting the app on port (**4000** as default) you can open
 in your browser OpenAPI documentation by typing
 
-> *http://localhost:4000/doc/*
+> _http://localhost:4000/doc/_
 
 Also we can work with **postgresql** in manual mode through Prisma studio
 
@@ -50,7 +52,7 @@ npm docker:studio
 
 And open a graphical user interface (GUI) in your browser to work with databases easily
 
-> *http://localhost:5555*
+> _http://localhost:5555_
 
 ## :test_tube: Testing
 
