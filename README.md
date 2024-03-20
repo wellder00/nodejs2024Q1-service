@@ -10,7 +10,7 @@
 - Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
 - Docker - [Download & Install Docker](https://www.docker.com/products/docker-desktop/).
 
-You can also see docker images here: **[Application](https://hub.docker.com/repository/docker/wellder00/nodejs2023q2-service-app/general)**, **[PostgresQl](https://hub.docker.com/repository/docker/wellder00/nodejs2023q2-service-db/general)**
+You can also see docker images here: **[Application](https://hub.docker.com/repository/docker/wellder00/nodejs2023q2-service-app/general)**, **[PostgreSQL](https://hub.docker.com/repository/docker/wellder00/nodejs2023q2-service-db/general)**
 
 ## 📦 How to install Home Library Service
 
