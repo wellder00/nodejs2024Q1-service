@@ -14,6 +14,7 @@ import { LoggerModule } from './logger/logger.module';
 import { JwtAuthMiddleware } from './utils/middlewares/jwtAuthMiddleware';
 import { HttpRequestLoggerMiddleware } from './utils/middlewares/httpRequestLoggerMiddleware';
 import { CoreModule } from './utils/modules/coreModule';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CoreModule } from './utils/modules/coreModule';
     TrackModule,
     PrismaModule,
     LoggerModule,
+    AuthModule,
   ],
 })
 export class AppModule implements NestModule {
