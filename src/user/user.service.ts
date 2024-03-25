@@ -1,15 +1,19 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { hashPassword } from 'src/utils/hashPassword';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
   async createUser(createUserDto: CreateUserDto) {
-    const user = await this.prisma.user.create({ data: createUserDto });
+    const login = createUserDto.login;
+    const password = await hashPassword(createUserDto.password);
+    const user = await this.prisma.user.create({ data: { login, password } });
     return new UserEntity(user);
   }
 
@@ -30,26 +34,26 @@ export class UserService {
   }
 
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
-    const currentUser = await this.prisma.user.findUnique({
-      where: { id },
-    });
-
+    const currentUser = await this.prisma.user.findUnique({ where: { id } });
+  
     if (!currentUser) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
-
-    if (currentUser.password !== updateUserDto.oldPassword) {
-      throw new HttpException('Old password does not match', 403);
+  
+    const passwordMatches = await bcrypt.compare(updateUserDto.oldPassword, currentUser.password);
+    if (!passwordMatches) {
+      throw new HttpException('Old password does not match', HttpStatus.FORBIDDEN);
     }
-
+  
+    const hashedPassword = await hashPassword(updateUserDto.newPassword);
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
-        password: updateUserDto.newPassword,
+        password: hashedPassword,
         version: { increment: 1 },
       },
     });
-
+  
     return new UserEntity(updatedUser);
   }
 
