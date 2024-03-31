@@ -10,8 +10,8 @@ export class EnhancedLoggingService extends ConsoleLogger {
   private readonly logLevel: number;
   private readonly logFileMaxSizeBytes: number;
   private readonly logsFolderPath: string;
-  private logFileName: string = 'application.log';
-  private errorLogFileName: string = 'errors.log';
+  private logFileName = 'application.log';
+  private errorLogFileName = 'errors.log';
 
   constructor(private configService: ConfigService) {
     super();

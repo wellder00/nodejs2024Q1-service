@@ -1,33 +1,58 @@
 import {
-  Controller,
-  Post,
   Body,
-  UsePipes,
-  ValidationPipe,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { StatusCodes } from 'http-status-codes';
+import { AuthGuard } from '@nestjs/passport';
 
+import { AuthService } from './auth.service';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { UpdateAuthDto } from './dto/update-auth.dto';
+import { skipAuth } from './decorators/skipAuth.decorator';
+import { UserCredentialsValidationGuard } from './guards/userCredentialsValidationGuard.guard';
+import { RefreshTokenAuthGuard } from './guards/RefreshTokenAuth.guard';
+import { UserEntity } from 'src/user/entities/user.entity';
+
+interface UserTokens {
+  userId: string;
+  login: string;
+  accessToken: string;
+  refreshToken: string;
+}
+interface AuthenticatedRequest extends Request {
+  user: {
+    id: string;
+    login: string;
+    password: string;
+  };
+}
+
+@skipAuth()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(UserCredentialsValidationGuard, AuthGuard('local'))
   @Post('login')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  performLogin(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.performLogin(createAuthDto);
+  @HttpCode(StatusCodes.OK)
+  login(@Req() req: AuthenticatedRequest): Promise<UserTokens> {
+    return this.authService.loginUser(req.user);
   }
 
   @Post('signup')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  performSignup(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.performSignup(createAuthDto);
+  @HttpCode(StatusCodes.CREATED)
+  signup(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
+    return this.authService.registerUser(createUserDto);
   }
 
+  @UseGuards(RefreshTokenAuthGuard)
   @Post('refresh')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  performTokenRefresh(@Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.performTokenRefresh(updateAuthDto);
+  @HttpCode(StatusCodes.OK)
+  async refresh(@Body() updateAuthDto: UpdateAuthDto) {
+    return await this.authService.refreshToken(updateAuthDto);
   }
 }
