@@ -30,10 +30,14 @@ async function bootstrap() {
 
   const PORT = process.env.PORT || defaultPort;
   await app.listen(PORT);
+
   //TODO Here we will test unhandled exceptions and unhandled rejections and work with logger
-  // Promise.reject('Test unhandled rejection for logging');
-  // throw new Error('Test unhandled error for logging');
-  logger.log(`Application is running on port: ${PORT}`, 'Bootstrap');
+  //Promise.reject('Test unhandled rejection for logging');
+
+  logger.log(
+    `\x1b[35mApplication is running on port: ${PORT}\x1b[0m`,
+    'Bootstrap',
+  );
 }
 
 bootstrap().catch((error) => {

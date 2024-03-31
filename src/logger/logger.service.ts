@@ -47,11 +47,24 @@ export class EnhancedLoggingService extends ConsoleLogger {
     }
   }
   private timeStamp(): string {
-    return new Date()
-      .toISOString()
-      .replace('T', ' ')
-      .slice(0, -5)
+    const now = new Date();
+    const date = now
+      .toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      })
+      .replace(/\./g, '-');
+
+    const time = now
+      .toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      })
       .replace(/:/g, '-');
+    return `${date} ${time}`;
   }
 
   private generateFileName(baseName: string): string {
@@ -82,7 +95,7 @@ export class EnhancedLoggingService extends ConsoleLogger {
     if (this.logLevel >= 2) {
       context !== undefined ? super.log(message, context) : super.log(message);
       const formattedMsg = `[${this.timeStamp().replace(/-/g, ':')}] [${
-        context || 'Context not provided'
+        context || 'Not provided'
       }] ${message}\n`;
       this.appendLogMessage(
         path.join(this.logsFolderPath, this.logFileName),
@@ -93,13 +106,24 @@ export class EnhancedLoggingService extends ConsoleLogger {
 
   override error(message: any, trace?: string, context?: string): void {
     if (this.logLevel >= 0) {
-      super.error(message, trace, context);
-      const formattedMsg = `[${this.timeStamp().replace(/-/g, ':')}] [ERROR] [${
-        context || 'Context not provided'
-      }] ${message} - Trace: ${trace || 'Trace not provided'}\n`;
+      const formattedMessage = message
+        ? typeof message === 'object'
+          ? JSON.stringify(message, null, 2)
+          : message
+        : 'No message provided';
+      const formattedTrace = trace || 'No trace';
+      const formattedContext = context || 'Not provided';
+
+      super.error(formattedMessage, formattedTrace, formattedContext);
+
+      const logMessage = `[${this.timeStamp().replace(
+        /-/g,
+        ':',
+      )}] [ERROR] [${formattedContext}] ${formattedMessage} - Trace: ${formattedTrace}\n`;
+
       this.appendLogMessage(
         path.join(this.logsFolderPath, this.errorLogFileName),
-        formattedMsg,
+        logMessage,
       );
     }
   }

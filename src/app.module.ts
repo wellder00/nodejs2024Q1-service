@@ -4,7 +4,7 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import JwtAuthGuard from './auth/guards/jwtAuth.guard';
 import { EnhancedLoggingService } from './logger/logger.service';
 import { AlbumModule } from './album/album.module';
@@ -17,6 +17,7 @@ import { TrackModule } from './track/track.module';
 import { UserModule } from './user/user.module';
 import { HttpRequestLoggerMiddleware } from './utils/middlewares/httpRequestLoggerMiddleware';
 import { CoreModule } from './utils/modules/coreModule';
+import { CustomHttpExceptionFilter } from './utils/handlers/filter/customHttpException.filter';
 
 @Module({
   imports: [
@@ -34,6 +35,10 @@ import { CoreModule } from './utils/modules/coreModule';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: CustomHttpExceptionFilter,
     },
     EnhancedLoggingService,
   ],

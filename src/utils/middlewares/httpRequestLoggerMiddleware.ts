@@ -8,12 +8,16 @@ export class HttpRequestLoggerMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     const startTime = Date.now();
-    res.on('close', () => {
-      const { method, baseUrl, body, query, ip } = req;
+    res.on('finish', () => {
+      if (res.getHeader('Skip-Logging') === 'true') {
+        return;
+      }
+      const { method, originalUrl, body, query, ip } = req;
       const { statusCode } = res;
       const responseTime = Date.now() - startTime;
+
       this.logger.log(
-        `${method} ${baseUrl} - StatusCode: ${statusCode}, Body: ${JSON.stringify(
+        `${method} ${originalUrl} - StatusCode: ${statusCode}, Body: ${JSON.stringify(
           body,
         )}, Query: ${JSON.stringify(
           query,
