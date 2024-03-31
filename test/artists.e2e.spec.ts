@@ -316,7 +316,6 @@ describe('artist (e2e)', () => {
       };
 
       expect(creationArtistResponse.status).toBe(StatusCodes.CREATED);
-
       const creationAlbumResponse = await unauthorizedRequest
         .post(albumsRoutes.create)
         .set(commonHeaders)
