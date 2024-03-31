@@ -1,7 +1,7 @@
 services:
   db:
-    # image: wellder00/nodejs2023q2-service-db:latest
-    build: ./db/
+    image: wellder00/nodejs2023q2-service-db:1.3
+    # build: ./db/
     ports:
       - '$DATA_BASE_PORT:$DATA_BASE_PORT'
     container_name: 'data-base-PG'
@@ -24,7 +24,7 @@ services:
       ]
 
   app:
-    # image: wellder00/nodejs2023q2-service-app:latest
+    image: wellder00/nodejs2023q2-service-app:1.3
     build: .
     container_name: 'app'
     ports:
