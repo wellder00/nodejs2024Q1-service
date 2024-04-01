@@ -39,6 +39,7 @@ services:
       - .env
     volumes:
       - ./src:/user/app/src
+      - ./loggerHistory:/user/app/loggerHistory
 
 volumes:
   db_storage_data:
