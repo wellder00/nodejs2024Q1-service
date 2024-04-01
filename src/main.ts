@@ -31,18 +31,13 @@ async function bootstrap() {
   const PORT = process.env.PORT || defaultPort;
   await app.listen(PORT);
 
-  //TODO Here we will test unhandled exceptions and unhandled rejections and work with logger
-  //Promise.reject('Test unhandled rejection for logging');
-
   logger.log(
     `\x1b[35mApplication is running on port: ${PORT}\x1b[0m`,
     'Bootstrap',
   );
+  //TODO Here we will test unhandled exceptions and unhandled rejections and work with logger
+  //Promise.reject('Test unhandled exceptions and unhandled rejections for logging');
+  //throw new Error('Test unhandled exceptions and unhandled rejections for logging');
 }
 
-bootstrap().catch((error) => {
-  console.error(
-    `\x1b[31mFailed to bootstrap the application: ${error.message}\x1b[0m`,
-  );
-  process.exit(1);
-});
+bootstrap();
