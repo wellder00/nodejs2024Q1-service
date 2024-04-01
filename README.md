@@ -96,8 +96,6 @@ And open a graphical user interface (GUI) in your browser to work with databases
 
 After application running open new terminal and enter:
 
-To run all tests without authorization
-
 ```bash
 npm run test
 ```
