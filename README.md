@@ -111,6 +111,13 @@ npm run test:auth
 npm run test:refresh
 ```
 
+### To view logs within your Docker app container, navigate to the following directory:
+
+> ***.user/app/loggerHistory***
+
+>This directory contains the log history for your application, providing insights into its runtime behavior and any errors or warnings that have occurred.
+Additionally, to facilitate log persistence and easy access, volumes for logging have been configured in the docker-compose.yml file. This setup ensures that logs are stored outside the container, allowing for easier retrieval and analysis without needing to access the container's filesystem directly.
+
 ### :pencil2: Auto-fix and Format
 
 ```bash
@@ -130,3 +137,4 @@ npm docker:scan
 ```
 
 **Link to this task [REST service: Logging & Error Handling and Authentication and Authorization](https://github.com/AlreadyBored/nodejs-assignments/tree/main/assignments/logging-error-authentication-authorization).**
+
